@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// 引入农历转换工具
+// 农历转换工具
 import { Lunar } from 'lunar-javascript';
 
 export default function Home() {
   const [time, setTime] = useState('');
   const [date, setDate] = useState('');
-  const [lunarDate, setLunarDate] = useState(''); // 新增农历状态
+  const [lunarDate, setLunarDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [links, setLinks] = useState([]);
 
@@ -23,7 +23,7 @@ export default function Home() {
       }
     } else {
       setLinks([
-        { name: '演示-淘宝', url: 'https://www.taobao.com' },
+        { name: '演示-知乎', url: 'https://www.zhihu.com' },
       ]);
     }
 
@@ -44,10 +44,9 @@ export default function Home() {
         weekday: 'long'
       }); 
 
-      // --- 农历计算部分 Start ---
+      // 农历计算
       const lunar = Lunar.fromDate(now);
       const lunarString = `农历 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
-      // --- 农历计算部分 End ---
       
       setTime(timeString);
       setDate(dateString);
@@ -82,15 +81,14 @@ export default function Home() {
       {/* 遮罩层 */}
       <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-10 pointer-events-none" />
 
-      {/* 主体内容 (保留了 pt-32 的上移设置) */}
-      <div className="relative z-20 flex flex-col items-center pt-36 h-full w-full px-4">
+      {/* 主体内容 */}
+      <div className="relative z-20 flex flex-col items-center pt-50 h-full w-full px-4">
         
         {/* 时钟区域 */}
         <div className="flex items-end gap-3 mb-8 drop-shadow-md select-none">
           <h1 className="text-7xl font-light tracking-wide">{time}</h1>
           <div className="flex flex-col text-sm font-medium opacity-90 pb-2 gap-1">
             <span>{date}</span>
-            {/* 这里现在显示真正的农历了 */}
             <span className="text-xs opacity-70 tracking-wider">{lunarDate}</span>
           </div>
         </div>
@@ -122,25 +120,25 @@ export default function Home() {
 
       {/* 底部导航 */}
       <div className="absolute bottom-0 w-full z-30 pb-8 sm:pb-12">
-        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-blue-300/30 to-transparent pointer-events-none" />
+        {/* 底部渐变背景 */}
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-blue-300/20 to-transparent pointer-events-none" />
 
-        <div className="relative flex flex-wrap justify-center gap-6 sm:gap-10 px-4">
+        <div className="relative flex flex-wrap justify-center gap-4 sm:gap-8 px-4">
           {links.map((link, index) => (
             <a
               key={index}
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`
-                text-sm sm:text-base font-medium text-white/90 tracking-wider transition-all duration-200
-                hover:text-white hover:scale-110 drop-shadow-md
-                ${index === 0 ? 'bg-white/20 px-4 py-1 rounded-full backdrop-blur-md' : 'py-1'}
-              `}
+              className="
+                text-sm sm:text-base font-medium text-white/90 tracking-wider 
+                px-4 py-2 rounded-lg transition-all duration-200
+                hover:bg-white/20 hover:text-white hover:backdrop-blur-sm
+              "
             >
               {link.name}
             </a>
           ))}
-          <button className="text-white/70 hover:text-white text-lg leading-none pb-1">+</button>
         </div>
       </div>
     </main>
