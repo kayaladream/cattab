@@ -83,7 +83,7 @@ export default function Home() {
       <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-10 pointer-events-none" />
 
       {/* 主体内容 (保留了 pt-32 的上移设置) */}
-      <div className="relative z-20 flex flex-col items-center pt-10 h-full w-full px-4">
+      <div className="relative z-20 flex flex-col items-center pt-1 h-full w-full px-4">
         
         {/* 时钟区域 */}
         <div className="flex items-end gap-3 mb-8 drop-shadow-md select-none">
