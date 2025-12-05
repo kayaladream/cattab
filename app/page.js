@@ -59,7 +59,7 @@ export default function Home() {
     updateTime();
     const timer = setInterval(updateTime, 1000);
 
-    // 4. 点击外部关闭下拉菜单 (修复点击无反应的核心逻辑)
+    // 4. 点击外部关闭下拉菜单
     const handleClickOutside = (event) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -94,7 +94,7 @@ export default function Home() {
       </video>
       <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-10 pointer-events-none" />
 
-      {/* 主体内容 (pt-44 约等于 176px，保证位置适中) */}
+      {/* 主体内容 */}
       <div className="relative z-20 flex flex-col items-center pt-44 h-full w-full px-4">
         
         {/* 时钟 */}
@@ -128,7 +128,7 @@ export default function Home() {
               </svg>
             </button>
 
-            {/* 下拉菜单 (风格与底部导航一致) */}
+            {/* 下拉菜单 */}
             {isDropdownOpen && (
               <div className="absolute top-14 left-0 w-36 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 {engines.map((engine, index) => (
@@ -136,11 +136,18 @@ export default function Home() {
                     key={index}
                     onClick={() => handleEngineSelect(engine)}
                     className={`
-                      px-4 py-2 text-sm text-gray-700 cursor-pointer font-medium rounded-lg
-                      transition-all duration-200
-                      /* 这里模仿底部导航的悬停效果：背景微透变化 */
-                      hover:bg-black/5 hover:scale-105 hover:text-black
-                      ${currentEngine.name === engine.name ? 'bg-black/10 text-black font-bold' : ''}
+                      px-4 py-2 text-sm cursor-pointer rounded-lg transition-all duration-200
+                      /* 
+                         逻辑修改：
+                         1. 只有 hover 时显示背景 (hover:bg-black/5)
+                         2. 选中的项 (currentEngine) 只显示加粗和深色字，不显示背景
+                         3. 这样就不会出现两条背景色了
+                      */
+                      hover:bg-black/5 hover:scale-105
+                      ${currentEngine.name === engine.name 
+                        ? 'text-black font-extrabold'  // 选中状态：更黑、更粗
+                        : 'text-gray-600 font-medium'  // 默认状态：深灰
+                      }
                     `}
                   >
                     {engine.name}
