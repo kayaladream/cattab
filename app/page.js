@@ -33,11 +33,6 @@ export default function Home() {
     const envEngines = process.env.NEXT_PUBLIC_SEARCH_ENGINES;
     let loadedEngines = [
       { name: '百度', url: 'https://www.baidu.com/s?wd=' },
-      { name: 'Google', url: 'https://www.google.com/search?q=' },
-      { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=' },
-      { name: '必应', url: 'https://www.bing.com/search?q=' },
-      { name: '360', url: 'https://www.so.com/s?q=' },
-      { name: '搜狗', url: 'https://www.sogou.com/web?query=' },
     ];
     if (envEngines) {
       try {
