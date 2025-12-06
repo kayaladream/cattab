@@ -1,8 +1,7 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'CatTab',
-  description: '极简浏览器起始页',
+  title: 'CatTab-新标签页',
 };
 
 export default function RootLayout({ children }) {
