@@ -11,6 +11,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [links, setLinks] = useState([]);
   
+  // 视频加载状态 (默认为 false，表示没加载完)
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  
   // 搜索引擎状态
   const [engines, setEngines] = useState([]);
   const [currentEngine, setCurrentEngine] = useState({ name: '百度', url: 'https://www.baidu.com/s?wd=' });
@@ -26,7 +29,7 @@ export default function Home() {
     if (envLinks) {
       try { setLinks(JSON.parse(envLinks)); } catch (e) { console.error("导航链接解析失败", e); }
     } else {
-      setLinks([{ name: '愛和流浪動物之家', url: 'https://aihe.ngo.us' }]);
+      setLinks([{ name: '演示-淘宝', url: 'https://www.taobao.com' }]);
     }
 
     // 2. 读取搜索引擎
@@ -88,10 +91,31 @@ export default function Home() {
   return (
     <main className="relative w-full h-screen overflow-hidden text-white font-sans">
       
-      {/* 背景视频 */}
-      <video autoPlay loop muted playsInline className="absolute top-0 left-0 w-full h-full object-cover z-0">
+      {/* 1. 静态占位图 (cat.jpg) - 永远显示在最底层 */}
+      <img 
+        src="/background/cat.jpg" 
+        alt="Background Placeholder"
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+      />
+
+      {/* 2. 背景视频 (cat.mp4) - 叠加在图片之上 */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        // 当视频可以播放时，将状态设为 true
+        onCanPlay={() => setIsVideoLoaded(true)}
+        className={`
+          absolute top-0 left-0 w-full h-full object-cover z-0
+          transition-opacity duration-1000 ease-in-out
+          ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}
+        `}
+      >
         <source src="/background/cat.mp4" type="video/mp4" />
       </video>
+      
+      {/* 遮罩层 (加深一点背景，让文字更清晰) */}
       <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-10 pointer-events-none" />
 
       {/* 主体内容 */}
@@ -106,7 +130,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 搜索框容器 (Ref 绑定在这里) */}
+        {/* 搜索框容器 */}
         <form 
           ref={searchContainerRef}
           onSubmit={handleSearch} 
@@ -139,7 +163,7 @@ export default function Home() {
                       px-4 py-2 text-sm cursor-pointer rounded-lg transition-all duration-200
                       hover:bg-black/5 hover:scale-105
                       ${currentEngine.name === engine.name 
-                        ? 'text-black font-extrabold'
+                        ? 'text-black font-extrabold' 
                         : 'text-gray-600 font-medium'
                       }
                     `}
@@ -173,15 +197,13 @@ export default function Home() {
       </div>
 
       {/* 底部导航 */}
-      <div className="absolute bottom-0 w-full z-30 pb-[80px] sm:pb-[112px]">
+      <div className="absolute bottom-0 w-full z-30 pb-[78px] sm:pb-[110px]">
         <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-blue-300/20 to-transparent pointer-events-none" />
         <div className="relative flex flex-wrap justify-center gap-4 sm:gap-8 px-4">
           {links.map((link, index) => (
             <a
               key={index}
               href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
               className="
                 text-sm sm:text-base font-medium text-white/90 tracking-wider 
                 px-4 py-2 rounded-full transition-all duration-200
