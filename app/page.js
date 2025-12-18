@@ -28,8 +28,6 @@ export default function Home() {
   const searchContainerRef = useRef(null);
 
   // --- 新增：媒体加载错误处理 ---
-  // 如果随机到了一个不存在的文件(比如还没上传的 cat20)，
-  // 浏览器报错时，立即切换回默认的 'cat'，防止黑屏。
   const handleMediaError = () => {
     if (bgName !== 'cat') {
       console.log(`背景 ${bgName} 加载失败，回退到默认背景`);
@@ -55,7 +53,6 @@ export default function Home() {
       }
     }
     if (bgList.length > 0) {
-      // 随机选一个
       setBgName(bgList[Math.floor(Math.random() * bgList.length)]);
     }
 
@@ -69,7 +66,7 @@ export default function Home() {
       const screenWidth = window.innerWidth;
       const isDesktop = screenWidth > 1024;
       const containerPadding = isDesktop ? 760 : 32;
-      const availableWidth = screenWidth - containerPadding - 20; // 20px 安全缓冲
+      const availableWidth = screenWidth - containerPadding - 20; 
 
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
@@ -215,23 +212,13 @@ export default function Home() {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.4); }
       `}</style>
 
-      {/* 
-         静态图 & 视频 
-         新增：onError={handleMediaError}
-         当试图加载不存在的 cat29.jpg 或 cat29.mp4 时，会自动触发并切换回 cat
-      */}
-      <img 
-        src={`/background/${bgName}.jpg`} 
-        alt="Background" 
-        className="absolute top-0 left-0 w-full h-full object-cover z-0" 
-        onError={handleMediaError}
-      />
-      
+      {/* 静态图 & 视频 */}
+      <img src={`/background/${bgName}.jpg`} alt="Background" className="absolute top-0 left-0 w-full h-full object-cover z-0" onError={handleMediaError} />
       {startLoadVideo && (
         <video
           autoPlay loop muted playsInline key={bgName} 
           onCanPlay={() => setIsVideoReady(true)}
-          onError={handleMediaError} // 视频加载失败也回退
+          onError={handleMediaError}
           className={`absolute top-0 left-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
         >
           <source src={`/background/${bgName}.mp4`} type="video/mp4" />
@@ -299,7 +286,10 @@ export default function Home() {
                 >
                    <div className="flex flex-col gap-1 py-4">
                      {hiddenLinks.map((link, idx) => (
-                       <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 text-xs sm:text-sm text-center text-white/90 font-extralight rounded-full transition-all duration-200 hover:bg-white/20 hover:text-white">
+                       <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" 
+                          // ↓↓↓ 修改这里：将 block 改为 w-fit mx-auto
+                          className="w-fit mx-auto px-4 py-2 text-xs sm:text-sm text-center text-white/90 font-extralight rounded-full transition-all duration-200 hover:bg-white/20 hover:text-white"
+                       >
                          {link.name}
                        </a>
                      ))}
