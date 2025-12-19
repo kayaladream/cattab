@@ -12,17 +12,14 @@ export default function Home() {
   const [links, setLinks] = useState([]);
   const [year, setYear] = useState(new Date().getFullYear());
   
-  const [bgName, setBgName] = useState('cat');
+  // 修改点1：默认背景改为 'cat1'
+  const [bgName, setBgName] = useState('cat1');
   const [engines, setEngines] = useState([]);
   const [currentEngine, setCurrentEngine] = useState({ name: '百度', url: 'https://www.baidu.com/s?wd=' });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const [startLoadVideo, setStartLoadVideo] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
-
-  // --- 新增：背景锁定状态 ---
-  // 用于解决"先显示默认图片再闪烁变随机图片"的问题
-  // 初始为 false (隐藏图片)，等随机结果出来后变为 true (显示图片)
   const [isBgResolved, setIsBgResolved] = useState(false);
 
   // --- 导航栏收纳逻辑 ---
@@ -34,10 +31,10 @@ export default function Home() {
 
   // --- 媒体加载错误处理 ---
   const handleMediaError = () => {
-    if (bgName !== 'cat') {
+    // 修改点2：如果当前不是 cat1 出错，就回退到 cat1
+    if (bgName !== 'cat1') {
       console.log(`背景 ${bgName} 加载失败，回退到默认背景`);
-      setBgName('cat');
-      // 确保回退后图片是可见的
+      setBgName('cat1');
       setIsBgResolved(true); 
     }
   };
@@ -46,13 +43,15 @@ export default function Home() {
   useEffect(() => {
     setYear(new Date().getFullYear());
 
-    // 1. 背景选择 (修改：增加 setIsBgResolved)
+    // 1. 背景选择
     const envBg = process.env.NEXT_PUBLIC_BACKGROUND_LIST;
-    let bgList = ['cat']; 
+    // 修改点3：列表默认基准改为 'cat1'
+    let bgList = ['cat1']; 
     if (envBg) {
       if (envBg === 'all') {
-        bgList = ['cat'];
-        for (let i = 1; i < 30; i++) {
+        // 修改点4：生成 cat1 到 cat30
+        bgList = [];
+        for (let i = 1; i <= 30; i++) {
           bgList.push(`cat${i}`);
         }
       } else {
@@ -64,7 +63,6 @@ export default function Home() {
       const randomBg = bgList[Math.floor(Math.random() * bgList.length)];
       setBgName(randomBg);
     }
-    // 随机选完后，标记为"已决定"，此时图片才会显示
     setIsBgResolved(true);
 
     // 2. 延迟加载视频
@@ -223,13 +221,7 @@ export default function Home() {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.4); }
       `}</style>
 
-      {/* 
-         静态图优化：
-         添加了 transition-opacity 和 isBgResolved 逻辑。
-         初始状态下 opacity-0 (看不见)，只有当 useEffect 随机选好背景后，
-         isBgResolved 变为 true，图片瞬间显示 (opacity-100)。
-         这样就解决了"先闪过cat再变cat5"的问题。
-      */}
+      {/* 静态图 & 视频 (路径全部动态化，回退逻辑已修正为 cat1) */}
       <img 
         src={`/background/${bgName}.jpg`} 
         alt="Background" 
@@ -313,7 +305,9 @@ export default function Home() {
                 >
                    <div className="flex flex-col gap-1 py-4">
                      {hiddenLinks.map((link, idx) => (
-                       <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="w-fit mx-auto px-4 py-2 text-xs sm:text-sm text-center text-white/90 font-extralight rounded-full transition-all duration-200 hover:bg-white/20 hover:text-white">
+                       <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" 
+                          className="w-fit mx-auto px-4 py-2 text-xs sm:text-sm text-center text-white/90 font-extralight rounded-full transition-all duration-200 hover:bg-white/20 hover:text-white"
+                       >
                          {link.name}
                        </a>
                      ))}
