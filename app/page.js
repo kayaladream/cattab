@@ -12,7 +12,6 @@ export default function Home() {
   const [links, setLinks] = useState([]);
   const [year, setYear] = useState(new Date().getFullYear());
   
-  // 修改点1：默认背景改为 'cat1'
   const [bgName, setBgName] = useState('cat1');
   const [engines, setEngines] = useState([]);
   const [currentEngine, setCurrentEngine] = useState({ name: '百度', url: 'https://www.baidu.com/s?wd=' });
@@ -31,7 +30,6 @@ export default function Home() {
 
   // --- 媒体加载错误处理 ---
   const handleMediaError = () => {
-    // 修改点2：如果当前不是 cat1 出错，就回退到 cat1
     if (bgName !== 'cat1') {
       console.log(`背景 ${bgName} 加载失败，回退到默认背景`);
       setBgName('cat1');
@@ -45,11 +43,9 @@ export default function Home() {
 
     // 1. 背景选择
     const envBg = process.env.NEXT_PUBLIC_BACKGROUND_LIST;
-    // 修改点3：列表默认基准改为 'cat1'
     let bgList = ['cat1']; 
     if (envBg) {
       if (envBg === 'all') {
-        // 修改点4：生成 cat1 到 cat30
         bgList = [];
         for (let i = 1; i <= 30; i++) {
           bgList.push(`cat${i}`);
@@ -221,7 +217,11 @@ export default function Home() {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.4); }
       `}</style>
 
-      {/* 静态图 & 视频 (路径全部动态化，回退逻辑已修正为 cat1) */}
+      {/* 
+         静态图 & 视频 (改为 object-cover)
+         这会保持 16:9 比例，不变形。
+         在宽屏电脑上，它会自动铺满宽度，只裁剪上下溢出的部分，符合你的要求。
+      */}
       <img 
         src={`/background/${bgName}.jpg`} 
         alt="Background" 
