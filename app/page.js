@@ -12,7 +12,7 @@ export default function Home() {
   const [links, setLinks] = useState([]);
   const [year, setYear] = useState(new Date().getFullYear());
   
-  // ↓↓↓ 修改点1：初始值设为 null，不设默认值，防止"闪烁"
+  // 初始背景为 null
   const [bgName, setBgName] = useState(null);
   
   const [engines, setEngines] = useState([]);
@@ -21,7 +21,9 @@ export default function Home() {
   
   const [startLoadVideo, setStartLoadVideo] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
-  const [isBgResolved, setIsBgResolved] = useState(false);
+  
+  // 图片是否真正下载完成
+  const [isBgLoaded, setIsBgLoaded] = useState(false);
 
   // --- 导航栏收纳逻辑 ---
   const [visibleLinks, setVisibleLinks] = useState([]); 
@@ -32,11 +34,11 @@ export default function Home() {
 
   // --- 媒体加载错误处理 ---
   const handleMediaError = () => {
-    // 只有当已经选定了背景(不为null)且不是cat1时，才执行回退
     if (bgName && bgName !== 'cat1') {
       console.log(`背景 ${bgName} 加载失败，回退到默认背景`);
       setBgName('cat1');
-      setIsBgResolved(true); 
+      // 如果回退，这里强制设为已加载，让 cat1 显示出来
+      // 注意：cat1 应该是本地存在的保底文件
     }
   };
 
@@ -58,14 +60,13 @@ export default function Home() {
       }
     }
     
-    // ↓↓↓ 修改点2：直接设置随机值，没有任何中间状态
     if (bgList.length > 0) {
       const randomBg = bgList[Math.floor(Math.random() * bgList.length)];
       setBgName(randomBg);
     } else {
-      setBgName('cat1'); // 保底
+      setBgName('cat1');
     }
-    setIsBgResolved(true);
+    // 注意：这里不再设置 isBgLoaded，改由 img 的 onLoad 触发
 
     // 2. 延迟加载视频
     const videoTimer = setTimeout(() => setStartLoadVideo(true), 800); 
@@ -209,7 +210,9 @@ export default function Home() {
   };
 
   return (
-    <main className="relative w-full h-screen overflow-hidden text-white font-sans">
+    // 修改点：bg-slate-900
+    // 给主容器加一个深色背景。在图片加载出来之前，用户看到的是这个深色，而不是白屏。
+    <main className="relative w-full h-screen overflow-hidden text-white font-sans bg-slate-900">
       
       {/* 滚动条样式 */}
       <style jsx global>{`
@@ -224,25 +227,24 @@ export default function Home() {
       `}</style>
 
       {/* 
-         静态图优化：
-         修改点3：{bgName && ...}
-         只有当 bgName 有值了(也就是算好随机数了)，才开始渲染 img 标签。
-         这样保证了浏览器发出的第一个图片请求就是正确的那个，避免先加载 cat1。
+         静态图 & 视频
+         修改点：onLoad={() => setIsBgLoaded(true)}
+         只有当图片真正下载完毕，isBgLoaded 变为 true，图片才会从 opacity-0 变为 opacity-100。
       */}
       {bgName && (
         <img 
           src={`/background/${bgName}.jpg`} 
           alt="Background" 
+          onLoad={() => setIsBgLoaded(true)}
           onError={handleMediaError}
           className={`
             absolute top-0 left-0 w-full h-full object-cover z-0 
-            transition-opacity duration-300 
-            ${isBgResolved ? 'opacity-100' : 'opacity-0'}
+            transition-opacity duration-500 ease-in-out
+            ${isBgLoaded ? 'opacity-100' : 'opacity-0'}
           `} 
         />
       )}
       
-      {/* 视频加载逻辑保持不变，它依赖 startLoadVideo 计时器 */}
       {startLoadVideo && bgName && (
         <video
           autoPlay loop muted playsInline key={bgName} 
@@ -253,6 +255,8 @@ export default function Home() {
           <source src={`/background/${bgName}.mp4`} type="video/mp4" />
         </video>
       )}
+      
+      {/* 遮罩层 */}
       <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-10 pointer-events-none" />
 
       {/* GitHub 链接 */}
