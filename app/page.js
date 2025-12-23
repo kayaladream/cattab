@@ -12,7 +12,6 @@ export default function Home() {
   const [links, setLinks] = useState([]);
   const [year, setYear] = useState(new Date().getFullYear());
   
-  // 初始背景为 null
   const [bgName, setBgName] = useState(null);
   
   const [engines, setEngines] = useState([]);
@@ -21,8 +20,6 @@ export default function Home() {
   
   const [startLoadVideo, setStartLoadVideo] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
-  
-  // 图片是否真正下载完成
   const [isBgLoaded, setIsBgLoaded] = useState(false);
 
   // --- 导航栏收纳逻辑 ---
@@ -31,14 +28,15 @@ export default function Home() {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false); 
   const moreMenuRef = useRef(null); 
   const searchContainerRef = useRef(null);
+  
+  // 1. 新增：输入框的引用，用于控制光标
+  const inputRef = useRef(null);
 
   // --- 媒体加载错误处理 ---
   const handleMediaError = () => {
     if (bgName && bgName !== 'cat1') {
       console.log(`背景 ${bgName} 加载失败，回退到默认背景`);
       setBgName('cat1');
-      // 如果回退，这里强制设为已加载，让 cat1 显示出来
-      // 注意：cat1 应该是本地存在的保底文件
     }
   };
 
@@ -46,7 +44,7 @@ export default function Home() {
   useEffect(() => {
     setYear(new Date().getFullYear());
 
-    // 1. 背景选择
+    // 背景选择
     const envBg = process.env.NEXT_PUBLIC_BACKGROUND_LIST;
     let bgList = ['cat1']; 
     if (envBg) {
@@ -66,12 +64,11 @@ export default function Home() {
     } else {
       setBgName('cat1');
     }
-    // 注意：这里不再设置 isBgLoaded，改由 img 的 onLoad 触发
 
-    // 2. 延迟加载视频
+    // 延迟加载视频
     const videoTimer = setTimeout(() => setStartLoadVideo(true), 800); 
 
-    // 3. 核心：智能布局算法 (带安全缓冲版)
+    // 布局算法
     const calculateLayout = (allLinks) => {
       if (!allLinks || allLinks.length === 0) return;
 
@@ -149,7 +146,7 @@ export default function Home() {
     const onResize = () => calculateLayout(parsedLinks);
     window.addEventListener('resize', onResize);
 
-    // 4. 搜索引擎
+    // 搜索引擎
     const envEngines = process.env.NEXT_PUBLIC_SEARCH_ENGINES;
     let loadedEngines = [
       { name: '百度', url: 'https://www.baidu.com/s?wd=' },
@@ -168,7 +165,7 @@ export default function Home() {
     setEngines(loadedEngines);
     setCurrentEngine(loadedEngines[0]);
 
-    // 5. 时间
+    // 时间
     const updateTime = () => {
       const now = new Date();
       setTime(now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
@@ -179,7 +176,7 @@ export default function Home() {
     updateTime();
     const timer = setInterval(updateTime, 1000);
 
-    // 6. 点击关闭
+    // 点击关闭
     const handleClickOutside = (event) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -207,12 +204,17 @@ export default function Home() {
   const handleEngineSelect = (engine) => {
     setCurrentEngine(engine);
     setIsDropdownOpen(false);
+    
+    // 2. 修改：选择完引擎后，立刻让光标回到输入框
+    // setTimeout 0 确保在下拉菜单消失的动画开始后，浏览器能正确识别焦点
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
   };
 
   return (
     <main className="relative w-full h-screen overflow-hidden text-white font-sans">
       
-      {/* 滚动条样式 */}
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -224,11 +226,6 @@ export default function Home() {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.4); }
       `}</style>
 
-      {/* 
-         静态图 & 视频
-         修改点：onLoad={() => setIsBgLoaded(true)}
-         只有当图片真正下载完毕，isBgLoaded 变为 true，图片才会从 opacity-0 变为 opacity-100。
-      */}
       {bgName && (
         <img 
           src={`/background/${bgName}.jpg`} 
@@ -253,11 +250,8 @@ export default function Home() {
           <source src={`/background/${bgName}.mp4`} type="video/mp4" />
         </video>
       )}
-      
-      {/* 遮罩层 */}
       <div className="absolute top-0 left-0 w-full h-full bg-black/10 z-10 pointer-events-none" />
 
-      {/* GitHub 链接 */}
       <a href="https://github.com/kayaladream/cat-new-tab" target="_blank" rel="noopener noreferrer" className="absolute top-6 right-6 z-50 text-white/70 hover:text-white transition-all hover:scale-110 drop-shadow-md">
         <svg height="28" width="28" viewBox="0 0 16 16" fill="currentColor"><path fillRule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
       </a>
@@ -283,7 +277,15 @@ export default function Home() {
                 ))}
               </div>
             )}
-            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-gray-800 text-sm h-full px-3" autoFocus />
+            {/* 3. 修改：添加 ref={inputRef} */}
+            <input 
+              ref={inputRef} 
+              type="text" 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+              className="flex-1 bg-transparent border-none outline-none text-gray-800 text-sm h-full px-3" 
+              autoFocus 
+            />
             <button type="submit" className="h-9 w-9 bg-[#2c2c2c] rounded-full flex items-center justify-center hover:bg-black transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </button>
