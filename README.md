@@ -54,8 +54,35 @@
 [{"name": "百度", "url": "https://www.baidu.com/s?wd="},{"name": "Google", "url": "https://www.google.com/search?q="},{"name": "DuckDuckGo", "url": "https://duckduckgo.com/?q="},{"name": "必应", "url": "https://www.bing.com/search?q="},{"name": "搜狗", "url": "https://www.sogou.com/web?query="},{"name": "小红书", "url": "https://www.xiaohongshu.com/search_result/?keyword="}]
 ```
 
----
+### 3. 背景视频列表 (`NEXT_PUBLIC_BACKGROUND_LIST`)
+控制每次刷新页面时随机展示哪些背景视频。如果不设置，默认仅显示 `cat1`。
 
+**配置示例：**
+
+*   **指定列表（推荐）**：目前共有 10 个视频可选，请填入指定的多个：
+    ```text
+    cat1,cat2,cat3
+    ```
+    *(注意：使用英文逗号分隔，不要加空格)*
+
+*   **全量模式**：可以填入：
+    ```text
+    all
+    ```
+
+*   **固定单个**：
+    ```text
+    cat1
+    ```
+
+**📂 文件命名要求：**
+请确保在项目的 `public/background/` 文件夹中，每一个编号都成对存在：
+*   `cat1.jpg` (静态封面) + `cat1.mp4` (视频)
+*   `cat2.jpg` (静态封面) + `cat2.mp4` (视频)
+*   ...以此类推
+
+---
+  
 ## 🧩 如何设置为浏览器“新建标签页”？
 
 由于浏览器（Edge/Chrome）的安全限制，默认设置无法更改“新建标签页”的地址。你需要安装一个轻量级插件来实现。
