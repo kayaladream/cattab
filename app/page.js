@@ -42,6 +42,13 @@ export default function Home() {
 
   // --- 初始化逻辑 ---
   useEffect(() => {
+  // 注册 Service Worker 进行极速本地缓存 
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => console.log('背景媒体缓存服务注册成功！'))
+        .catch((err) => console.log('缓存服务注册失败', err));
+    }
+
     setYear(new Date().getFullYear());
 
     // 背景选择
