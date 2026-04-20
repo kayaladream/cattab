@@ -1,8 +1,5 @@
 // public/sw.js
-//  升级版本号，强制浏览器更新管家的策略
-const CACHE_NAME = 'cattab-background-v3'; 
-
-// 记录正在后台下载的视频，防止重复下载
+const CACHE_NAME = 'cattab-background-v4'; 
 const activeDownloads = new Set();
 
 self.addEventListener('install', (event) => {
@@ -14,7 +11,6 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          // 清理掉之前可能存坏的 v1, v2 缓存
           if (cacheName !== CACHE_NAME && cacheName.startsWith('cattab-background-')) {
             return caches.delete(cacheName);
           }
@@ -27,14 +23,17 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.pathname.startsWith('/background/')) {
-    event.respondWith(handleMediaRequest(event.request));
+    // 把整个 event 传给大管家，让他能使用延迟任务
+    event.respondWith(handleMediaRequest(event));
   }
 });
 
-async function handleMediaRequest(request) {
+async function handleMediaRequest(event) {
+  const request = event.request;
   const cache = await caches.open(CACHE_NAME);
   const urlKey = request.url.split('?')[0]; 
 
+  // 1. 去保险箱找找有没有
   const cachedResponse = await cache.match(urlKey, { ignoreSearch: true });
 
   if (cachedResponse) {
@@ -59,16 +58,15 @@ async function handleMediaRequest(request) {
     });
   }
 
-// 2. 🌟 第二步：保险箱里没有！开始“影分身”静默偷家
+  // 2. 如果没有，开始后台延迟偷家
   if (!activeDownloads.has(urlKey)) {
     activeDownloads.add(urlKey);
 
-    // 🌟 创建一个带延迟的后台下载任务，让出前 3 秒的宝贵网速给前台视频播放！
     const bgFetchPromise = new Promise((resolve) => {
       setTimeout(async () => {
         try {
           const bgRequest = new Request(urlKey, { headers: new Headers(request.headers) });
-          bgRequest.headers.delete('Range'); // 撕掉切片头，要完整的
+          bgRequest.headers.delete('Range'); 
           
           const response = await fetch(bgRequest);
           if (response.status === 200) {
@@ -79,15 +77,15 @@ async function handleMediaRequest(request) {
         } catch (err) {
           console.warn('后台缓存失败', err);
         } finally {
-          activeDownloads.delete(urlKey); // 无论成败，解除标记
+          activeDownloads.delete(urlKey);
           resolve();
         }
-      }, 3000); // 🕒 延迟 3 秒钟！
+      }, 3000); // 延迟 3 秒下载，把初期的网速全留给前台视频！
     });
 
-    // event.waitUntil 保证大管家在等待这 3 秒时，不会被浏览器强制休眠
     event.waitUntil(bgFetchPromise);
   }
   
-  // 3. 立刻放行浏览器的当前请求！绝不阻挡！
+  // 3. 立刻放行浏览器当前的视频请求，一毫秒都不阻拦
   return fetch(request);
+}
