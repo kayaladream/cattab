@@ -1,5 +1,5 @@
 // public/sw.js
-const CACHE_NAME = 'cattab-background-v4'; 
+const CACHE_NAME = 'cattab-background-v5'; 
 const activeDownloads = new Set();
 
 self.addEventListener('install', (event) => {
@@ -23,7 +23,6 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.pathname.startsWith('/background/')) {
-    // 把整个 event 传给大管家，让他能使用延迟任务
     event.respondWith(handleMediaRequest(event));
   }
 });
@@ -63,6 +62,7 @@ async function handleMediaRequest(event) {
     activeDownloads.add(urlKey);
 
     const bgFetchPromise = new Promise((resolve) => {
+      // 🕒 延迟 15 秒！保证前台视频优先顺畅播放，绝不抢网速！
       setTimeout(async () => {
         try {
           const bgRequest = new Request(urlKey, { headers: new Headers(request.headers) });
@@ -70,8 +70,14 @@ async function handleMediaRequest(event) {
           
           const response = await fetch(bgRequest);
           if (response.status === 200) {
+            // 🌟 核心修复：将文件先100%下载到内存(arrayBuffer)，再写入保险箱
+            // 彻底解决 Cache.put() 遭遇网络断流报错的问题！
+            const buffer = await response.arrayBuffer();
             const cache = await caches.open(CACHE_NAME);
-            await cache.put(urlKey, response.clone());
+            await cache.put(urlKey, new Response(buffer, {
+              status: 200,
+              headers: response.headers
+            }));
             console.log(`后台静默缓存完毕，下次绝对秒开: ${urlKey}`);
           }
         } catch (err) {
@@ -80,7 +86,7 @@ async function handleMediaRequest(event) {
           activeDownloads.delete(urlKey);
           resolve();
         }
-      }, 3000); // 延迟 3 秒下载，把初期的网速全留给前台视频！
+      }, 15000); 
     });
 
     event.waitUntil(bgFetchPromise);
