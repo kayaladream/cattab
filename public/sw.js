@@ -1,5 +1,5 @@
 // public/sw.js
-const CACHE_NAME = 'cattab-background-v5'; 
+const CACHE_NAME = 'cattab-background-v6'; // 🌟 必须升到 v6，强制砸掉 v5 存坏的旧保险箱！
 const activeDownloads = new Set();
 
 self.addEventListener('install', (event) => {
@@ -37,7 +37,7 @@ async function handleMediaRequest(event) {
 
   if (cachedResponse) {
     const rangeHeader = request.headers.get('Range');
-    if (!rangeHeader) return cachedResponse;
+    if (!rangeHeader) return cachedResponse; // 🌟 图片会在这里瞬间返回！
 
     const blob = await cachedResponse.blob();
     const totalSize = blob.size;
@@ -62,7 +62,6 @@ async function handleMediaRequest(event) {
     activeDownloads.add(urlKey);
 
     const bgFetchPromise = new Promise((resolve) => {
-      // 🕒 延迟 15 秒！保证前台视频优先顺畅播放，绝不抢网速！
       setTimeout(async () => {
         try {
           const bgRequest = new Request(urlKey, { headers: new Headers(request.headers) });
@@ -70,13 +69,15 @@ async function handleMediaRequest(event) {
           
           const response = await fetch(bgRequest);
           if (response.status === 200) {
-            // 🌟 核心修复：将文件先100%下载到内存(arrayBuffer)，再写入保险箱
-            // 彻底解决 Cache.put() 遭遇网络断流报错的问题！
-            const buffer = await response.arrayBuffer();
-            const cache = await caches.open(CACHE_NAME);
-            await cache.put(urlKey, new Response(buffer, {
+            // 🌟 核心修复：使用 blob 保存，并强制清洗危险的响应头！
+            const blob = await response.blob();
+            const safeHeaders = new Headers(response.headers);
+            safeHeaders.delete('Content-Encoding'); // 洗掉压缩标记
+            safeHeaders.delete('Content-Length');   // 洗掉长度校验
+
+            await cache.put(urlKey, new Response(blob, {
               status: 200,
-              headers: response.headers
+              headers: safeHeaders
             }));
             console.log(`后台静默缓存完毕，下次绝对秒开: ${urlKey}`);
           }
@@ -92,6 +93,6 @@ async function handleMediaRequest(event) {
     event.waitUntil(bgFetchPromise);
   }
   
-  // 3. 立刻放行浏览器当前的视频请求，一毫秒都不阻拦
+  // 3. 立刻放行浏览器当前的请求
   return fetch(request);
 }
