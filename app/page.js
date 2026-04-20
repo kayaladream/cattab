@@ -304,7 +304,8 @@ export default function Home() {
       <div className="absolute bottom-[40px] w-full z-30 flex justify-center">
         <div className="absolute -bottom-10 left-0 w-full h-80 bg-gradient-to-t from-blue-300/20 to-transparent pointer-events-none" />
         
-        <div className="relative flex flex-wrap justify-center content-start gap-[6px] sm:gap-[12px] h-28 overflow-visible w-full px-4 lg:px-[380px]">  //  修改 gap-* 和 sm:gap-* 决定相邻链接之间的间距
+        // 修改 gap-* 和 sm:gap-* 决定相邻链接之间的间距
+        <div className="relative flex flex-wrap justify-center content-start gap-[6px] sm:gap-[12px] h-28 overflow-visible w-full px-4 lg:px-[380px]">
           {visibleLinks.map((link, index) => (
             <a key={index} href={link.url} className="text-xs sm:text-sm font-extralight text-white/90 tracking-wider px-3 py-2 rounded-full transition-all duration-200 hover:bg-white/20 hover:text-white hover:backdrop-blur-sm h-fit">
               {link.name}
