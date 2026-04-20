@@ -67,12 +67,9 @@ export default function Home() {
     
     if (bgList.length > 0) {
       const randomBg = bgList[Math.floor(Math.random() * bgList.length)];
-      setBgName(prev => {
-        if (prev) return prev; // 🌟 核心修复：如果已经有猫了，绝对不换第二只！
-        return randomBg;
-      });
+      setBgName(randomBg);
     } else {
-      setBgName(prev => prev ? prev : 'cat1');
+      setBgName('cat1');
     }
 
     // 延迟加载视频
