@@ -67,10 +67,8 @@ export default function Home() {
     
     if (bgList.length > 0) {
       const randomBg = bgList[Math.floor(Math.random() * bgList.length)];
-      setBgName(prev => {
-        if (prev) return prev; // 🌟 核心修复：如果已经有猫了，绝对不换第二只！
-        return randomBg;
-      });
+      // 🌟 修复 React 严格模式闪烁：如果已经有猫了，绝对不换第二只！
+      setBgName(prev => prev ? prev : randomBg);
     } else {
       setBgName(prev => prev ? prev : 'cat1');
     }
