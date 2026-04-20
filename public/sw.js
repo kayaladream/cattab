@@ -59,20 +59,35 @@ async function handleMediaRequest(request) {
     });
   }
 
+// 2. 🌟 第二步：保险箱里没有！开始“影分身”静默偷家
   if (!activeDownloads.has(urlKey)) {
-    activeDownloads.add(urlKey); // 标记一下，防止发 4 次请求
+    activeDownloads.add(urlKey);
 
-    const bgRequest = new Request(urlKey, { headers: new Headers(request.headers) });
-    bgRequest.headers.delete('Range');
+    // 🌟 创建一个带延迟的后台下载任务，让出前 3 秒的宝贵网速给前台视频播放！
+    const bgFetchPromise = new Promise((resolve) => {
+      setTimeout(async () => {
+        try {
+          const bgRequest = new Request(urlKey, { headers: new Headers(request.headers) });
+          bgRequest.headers.delete('Range'); // 撕掉切片头，要完整的
+          
+          const response = await fetch(bgRequest);
+          if (response.status === 200) {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(urlKey, response.clone());
+            console.log(`后台静默缓存完毕，下次绝对秒开: ${urlKey}`);
+          }
+        } catch (err) {
+          console.warn('后台缓存失败', err);
+        } finally {
+          activeDownloads.delete(urlKey); // 无论成败，解除标记
+          resolve();
+        }
+      }, 3000); // 🕒 延迟 3 秒钟！
+    });
 
-    fetch(bgRequest).then(async (response) => {
-      if (response.status === 200) {
-        await cache.put(urlKey, response.clone());
-        console.log(`后台静默缓存完成，已锁入保险箱: ${urlKey}`);
-      }
-    }).catch(err => console.warn('后台缓存失败', err))
-      .finally(() => activeDownloads.delete(urlKey)); // 下完了解除标记
+    // event.waitUntil 保证大管家在等待这 3 秒时，不会被浏览器强制休眠
+    event.waitUntil(bgFetchPromise);
   }
-
+  
+  // 3. 立刻放行浏览器的当前请求！绝不阻挡！
   return fetch(request);
-}
