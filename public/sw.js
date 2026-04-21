@@ -1,5 +1,5 @@
 // public/sw.js
-const CACHE_NAME = 'cattab-background-v6'; // 🌟 必须升到 v6，强制砸掉 v5 存坏的旧保险箱！
+const CACHE_NAME = 'cattab-background-v1';
 const activeDownloads = new Set();
 
 self.addEventListener('install', (event) => {
@@ -32,12 +32,11 @@ async function handleMediaRequest(event) {
   const cache = await caches.open(CACHE_NAME);
   const urlKey = request.url.split('?')[0]; 
 
-  // 1. 去保险箱找找有没有
   const cachedResponse = await cache.match(urlKey, { ignoreSearch: true });
 
   if (cachedResponse) {
     const rangeHeader = request.headers.get('Range');
-    if (!rangeHeader) return cachedResponse; // 🌟 图片会在这里瞬间返回！
+    if (!rangeHeader) return cachedResponse; // 图片会在这里瞬间返回
 
     const blob = await cachedResponse.blob();
     const totalSize = blob.size;
@@ -57,7 +56,6 @@ async function handleMediaRequest(event) {
     });
   }
 
-  // 2. 如果没有，开始后台延迟偷家
   if (!activeDownloads.has(urlKey)) {
     activeDownloads.add(urlKey);
 
@@ -69,7 +67,6 @@ async function handleMediaRequest(event) {
           
           const response = await fetch(bgRequest);
           if (response.status === 200) {
-            // 🌟 核心修复：使用 blob 保存，并强制清洗危险的响应头！
             const blob = await response.blob();
             const safeHeaders = new Headers(response.headers);
             safeHeaders.delete('Content-Encoding'); // 洗掉压缩标记
@@ -79,10 +76,10 @@ async function handleMediaRequest(event) {
               status: 200,
               headers: safeHeaders
             }));
-            console.log(`后台静默缓存完毕，下次绝对秒开: ${urlKey}`);
+            console.log(`Service Worker 缓存完成: ${urlKey}`);
           }
         } catch (err) {
-          console.warn('后台缓存失败', err);
+          console.warn('Service Worker 缓存失败', err);
         } finally {
           activeDownloads.delete(urlKey);
           resolve();
@@ -93,6 +90,5 @@ async function handleMediaRequest(event) {
     event.waitUntil(bgFetchPromise);
   }
   
-  // 3. 立刻放行浏览器当前的请求
   return fetch(request);
 }
