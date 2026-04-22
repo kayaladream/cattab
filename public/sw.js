@@ -1,5 +1,5 @@
 // public/sw.js
-const CACHE_NAME = 'cattab-background-v1';
+const CACHE_NAME = 'cattab-background-v1'; 
 const activeDownloads = new Set();
 
 self.addEventListener('install', (event) => {
@@ -36,7 +36,8 @@ async function handleMediaRequest(event) {
 
   if (cachedResponse) {
     const rangeHeader = request.headers.get('Range');
-    if (!rangeHeader) return cachedResponse; // 图片会在这里瞬间返回
+    
+    if (!rangeHeader) return cachedResponse;
 
     const blob = await cachedResponse.blob();
     const totalSize = blob.size;
@@ -60,6 +61,9 @@ async function handleMediaRequest(event) {
     activeDownloads.add(urlKey);
 
     const bgFetchPromise = new Promise((resolve) => {
+      const isVideo = urlKey.endsWith('.mp4');
+      const delayTime = isVideo ? 3000 : 0;
+
       setTimeout(async () => {
         try {
           const bgRequest = new Request(urlKey, { headers: new Headers(request.headers) });
@@ -69,22 +73,24 @@ async function handleMediaRequest(event) {
           if (response.status === 200) {
             const blob = await response.blob();
             const safeHeaders = new Headers(response.headers);
-            safeHeaders.delete('Content-Encoding'); // 洗掉压缩标记
-            safeHeaders.delete('Content-Length');   // 洗掉长度校验
+            safeHeaders.delete('Content-Encoding'); 
+            safeHeaders.delete('Content-Length');   
 
+            // 存入保险箱
+            const cache = await caches.open(CACHE_NAME);
             await cache.put(urlKey, new Response(blob, {
               status: 200,
               headers: safeHeaders
             }));
-            console.log(`Service Worker 缓存完成: ${urlKey}`);
+            console.log(`ServiceWorker缓存完成: ${urlKey} (延迟: ${delayTime}ms)`);
           }
         } catch (err) {
-          console.warn('Service Worker 缓存失败', err);
+          console.warn('ServiceWorker缓存失败', err);
         } finally {
           activeDownloads.delete(urlKey);
           resolve();
         }
-      }, 3000); 
+      }, delayTime); 
     });
 
     event.waitUntil(bgFetchPromise);
