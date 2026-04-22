@@ -29,7 +29,7 @@ export default function Home() {
   const moreMenuRef = useRef(null); 
   const searchContainerRef = useRef(null);
   
-  // 1. 新增：输入框的引用，用于控制光标
+  // 输入框的引用，用于控制光标
   const inputRef = useRef(null);
 
   // --- 媒体加载错误处理 ---
@@ -45,8 +45,8 @@ export default function Home() {
   // 注册 Service Worker 进行极速本地缓存 
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
-        .then((reg) => console.log('背景媒体缓存服务注册成功！'))
-        .catch((err) => console.log('缓存服务注册失败', err));
+        .then((reg) => console.log('背景媒体缓存服务注册完成'))
+        .catch((err) => console.log('背景媒体缓存服务注册失败', err));
     }
 
     setYear(new Date().getFullYear());
@@ -67,7 +67,6 @@ export default function Home() {
     
     if (bgList.length > 0) {
       const randomBg = bgList[Math.floor(Math.random() * bgList.length)];
-      // 🌟 修复 React 严格模式闪烁：如果已经有猫了，绝对不换第二只！
       setBgName(prev => prev ? prev : randomBg);
     } else {
       setBgName(prev => prev ? prev : 'cat1');
@@ -213,8 +212,7 @@ export default function Home() {
     setCurrentEngine(engine);
     setIsDropdownOpen(false);
     
-    // 2. 修改：选择完引擎后，立刻让光标回到输入框
-    // setTimeout 0 确保在下拉菜单消失的动画开始后，浏览器能正确识别焦点
+    // 选择完引擎后，光标自动回到输入框
     setTimeout(() => {
       inputRef.current?.focus();
     }, 0);
@@ -285,7 +283,6 @@ export default function Home() {
                 ))}
               </div>
             )}
-            {/* 3. 修改：添加 ref={inputRef} */}
             <input 
               ref={inputRef} 
               type="text" 
@@ -305,7 +302,7 @@ export default function Home() {
       <div className="absolute bottom-[40px] w-full z-30 flex justify-center">
         <div className="absolute -bottom-10 left-0 w-full h-80 bg-gradient-to-t from-blue-300/20 to-transparent pointer-events-none" />
         
-        {/* 修改 gap-* 和 sm:gap-* 调整相邻链接之间的间距 */}
+        {/* 修改 gap-* 和 sm:gap-* 能调整相邻链接之间的间距 */}
         <div className="relative flex flex-wrap justify-center content-start gap-[6px] sm:gap-[12px] h-28 overflow-visible w-full px-4 lg:px-[380px]">
           {visibleLinks.map((link, index) => (
             <a key={index} href={link.url} className="text-xs sm:text-sm font-extralight text-white/90 tracking-wider px-3 py-2 rounded-full transition-all duration-200 hover:bg-white/20 hover:text-white hover:backdrop-blur-sm h-fit">
