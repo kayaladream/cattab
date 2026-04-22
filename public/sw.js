@@ -84,7 +84,7 @@ async function handleMediaRequest(event) {
           activeDownloads.delete(urlKey);
           resolve();
         }
-      }, 15000); 
+      }, 3000); 
     });
 
     event.waitUntil(bgFetchPromise);
