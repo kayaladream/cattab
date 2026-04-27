@@ -62,9 +62,10 @@ async function handleMediaRequest(event) {
 
     const bgFetchPromise = new Promise((resolve) => {
       const isVideo = urlKey.endsWith('.mp4');
-      const delayTime = isVideo ? 3000 : 0;
+      const startDelay = isVideo ? 3000 : 0;
 
       setTimeout(async () => {
+        const startTime = Date.now();        // 记录实际开始下载的时间
         try {
           const bgRequest = new Request(urlKey, { headers: new Headers(request.headers) });
           bgRequest.headers.delete('Range'); 
@@ -76,13 +77,14 @@ async function handleMediaRequest(event) {
             safeHeaders.delete('Content-Encoding'); 
             safeHeaders.delete('Content-Length');   
 
-            // 存入保险箱
             const cache = await caches.open(CACHE_NAME);
             await cache.put(urlKey, new Response(blob, {
               status: 200,
               headers: safeHeaders
             }));
-            console.log(`ServiceWorker缓存完成: ${urlKey} (延迟: ${delayTime}ms)`);
+
+            const elapsed = Date.now() - startTime;   // 真实耗时
+            console.log(`ServiceWorker缓存完成: ${urlKey} (耗时: ${elapsed}ms)`);
           }
         } catch (err) {
           console.warn('ServiceWorker缓存失败', err);
@@ -90,7 +92,7 @@ async function handleMediaRequest(event) {
           activeDownloads.delete(urlKey);
           resolve();
         }
-      }, delayTime); 
+      }, startDelay); 
     });
 
     event.waitUntil(bgFetchPromise);
